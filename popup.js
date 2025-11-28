@@ -3,7 +3,6 @@ let cachedState = null;
 document.addEventListener('DOMContentLoaded', async () => {
   await refreshState();
   document.getElementById('toggle-btn').addEventListener('click', onToggle);
-  document.getElementById('refresh-tab').addEventListener('click', refreshActiveTab);
 });
 
 async function onToggle() {
@@ -12,7 +11,7 @@ async function onToggle() {
   try {
     const res = await send('toggleGlobal', { enabled });
     cachedState = res;
-    render(res, true);
+    render(res);
   } catch (e) {
     setLocalUI(!enabled); // revert
   }
@@ -21,37 +20,17 @@ async function onToggle() {
 async function refreshState() {
   const state = await send('getState');
   cachedState = state;
-  render(state, false);
+  render(state);
 }
 
-function render(state, showRefreshPrompt) {
+function render(state) {
   setLocalUI(state.globalEnabled);
-  if (showRefreshPrompt) showRefresh(); else hideRefresh();
 }
 
 function setLocalUI(enabled) {
   const btn = document.getElementById('toggle-btn');
   if (!btn) return;
   btn.textContent = enabled ? 'Disable' : 'Enable';
-}
-
-async function refreshActiveTab() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) await chrome.tabs.reload(tab.id);
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-function showRefresh() {
-  const row = document.getElementById('refresh-row');
-  if (row) row.classList.remove('hidden');
-}
-
-function hideRefresh() {
-  const row = document.getElementById('refresh-row');
-  if (row) row.classList.add('hidden');
 }
 
 function send(type, payload = {}) {
