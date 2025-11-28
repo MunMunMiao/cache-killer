@@ -2,41 +2,39 @@ let cachedState = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await refreshState();
-  document.getElementById('toggle-global').addEventListener('change', onToggleGlobal);
+  document.getElementById('toggle-btn').addEventListener('click', onToggle);
   document.getElementById('refresh-tab').addEventListener('click', refreshActiveTab);
 });
 
-async function onToggleGlobal(event) {
-  const enabled = event.target.checked;
-  setStatusDot(enabled);
+async function onToggle() {
+  const enabled = !(cachedState?.globalEnabled);
+  setLocalUI(enabled);
   try {
     const res = await send('toggleGlobal', { enabled });
     cachedState = res;
-    render(res);
-    showRefresh();
+    render(res, true);
   } catch (e) {
-    event.target.checked = !enabled;
-    setStatusDot(event.target.checked);
+    setLocalUI(!enabled); // revert
   }
 }
 
 async function refreshState() {
   const state = await send('getState');
   cachedState = state;
-  render(state);
+  render(state, false);
 }
 
-function render(state) {
-  const globalToggle = document.getElementById('toggle-global');
-  globalToggle.checked = Boolean(state.globalEnabled);
-  setStatusDot(globalToggle.checked);
-  hideRefresh();
+function render(state, showRefreshPrompt) {
+  setLocalUI(state.globalEnabled);
+  if (showRefreshPrompt) showRefresh(); else hideRefresh();
 }
 
-function setStatusDot(on) {
-  const dot = document.getElementById('state-dot');
-  if (!dot) return;
-  dot.classList.toggle('on', on);
+function setLocalUI(enabled) {
+  const btn = document.getElementById('toggle-btn');
+  const stateText = document.getElementById('state-text');
+  if (!btn || !stateText) return;
+  btn.textContent = enabled ? 'Disable' : 'Enable';
+  stateText.textContent = enabled ? 'Enabled (cache cleared on nav)' : 'Disabled (browser default)';
 }
 
 async function refreshActiveTab() {
@@ -49,13 +47,13 @@ async function refreshActiveTab() {
 }
 
 function showRefresh() {
-  const btn = document.getElementById('refresh-tab');
-  if (btn) btn.classList.remove('hidden');
+  const row = document.getElementById('refresh-row');
+  if (row) row.classList.remove('hidden');
 }
 
 function hideRefresh() {
-  const btn = document.getElementById('refresh-tab');
-  if (btn) btn.classList.add('hidden');
+  const row = document.getElementById('refresh-row');
+  if (row) row.classList.add('hidden');
 }
 
 function send(type, payload = {}) {

@@ -6,32 +6,26 @@
   <title>Cache Killer</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-<body class="bg">
+<body>
   <div class="shell">
-    <div class="logo" aria-label="Cache Killer"></div>
+    <header>
+      <div class="title">Cache Killer</div>
+      <div class="sub">Disk cache toggle</div>
+    </header>
 
-    <section class="card">
+    <div class="card">
       <div class="row">
-        <div class="icon-circle" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2 L3 14 h7 l-1 8 10-12 h-7 z"/>
-          </svg>
-        </div>
-        <label class="switch" aria-label="Toggle disk cache" title="Toggle">
-          <input type="checkbox" id="toggle-global" />
-          <span class="slider"></span>
-        </label>
-        <div class="state" id="state-dot" aria-hidden="true"></div>
-        <button id="refresh-tab" class="icon-btn hidden" aria-label="Refresh tab" title="Refresh">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10"/>
-            <polyline points="1 20 1 14 7 14"/>
-            <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10"/>
-            <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14"/>
-          </svg>
-        </button>
+        <button id="toggle-btn" class="btn">Enable</button>
+        <div class="state" id="state-text">Disabled</div>
       </div>
-    </section>
+    </div>
+
+    <div class="note" id="hint">Toggle to enable/disable disk cache clearing.</div>
+
+    <div class="refresh hidden" id="refresh-row">
+      <span id="refresh-text">Refresh the active tab to apply.</span>
+      <button id="refresh-tab" class="btn ghost sm">Refresh</button>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
