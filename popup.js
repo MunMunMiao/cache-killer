@@ -15,8 +15,8 @@ async function onToggleGlobal(event) {
     render(res);
     setStatus(
       enabled
-        ? 'Disk cache disabled. Refresh the active tab to apply.'
-        : 'Disk cache restored (browser default). Refresh the active tab to apply.'
+        ? 'Enabled. Refresh the active tab to apply.'
+        : 'Disabled. Refresh the active tab to apply.'
     );
     showRefresh();
   } catch (e) {
