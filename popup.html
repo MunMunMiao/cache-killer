@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cache Killer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="title">Cache Killer Switch</div>
+    <div class="version">v1.0.0</div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <div class="label">Disable Disk Cache Globally</div>
+        <div class="hint">Equivalent to DevTools “Disable cache”</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-global">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </section>
+  <div class="status-line">
+    <span id="status" aria-live="polite"></span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
