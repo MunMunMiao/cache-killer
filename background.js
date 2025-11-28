@@ -29,6 +29,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function handleNavigation(details) {
+  if (!details?.url) return;
   let host;
   try {
     host = new URL(details.url).hostname.toLowerCase();
