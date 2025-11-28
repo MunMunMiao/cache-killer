@@ -7,29 +7,32 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body class="bg">
-  <header class="flex justify-between items-center mb-3">
-    <div class="text-lg font-semibold">Cache Killer</div>
-    <span class="text-xs text-muted">v1.0.0</span>
-  </header>
+  <div class="shell">
+    <div class="logo" aria-label="Cache Killer"></div>
 
-  <section class="card">
-    <div class="flex items-center justify-between gap-3">
-      <div>
-        <div class="font-semibold">Disk Cache</div>
-        <div class="text-xs text-muted">Enable / Disable</div>
+    <section class="card">
+      <div class="row">
+        <div class="icon-circle" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2 L3 14 h7 l-1 8 10-12 h-7 z"/>
+          </svg>
+        </div>
+        <label class="switch" aria-label="Toggle disk cache" title="Toggle">
+          <input type="checkbox" id="toggle-global" />
+          <span class="slider"></span>
+        </label>
+        <div class="state" id="state-dot" aria-hidden="true"></div>
+        <button id="refresh-tab" class="icon-btn hidden" aria-label="Refresh tab" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10"/>
+            <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14"/>
+          </svg>
+        </button>
       </div>
-      <label class="switch">
-        <input type="checkbox" id="toggle-global" />
-        <span class="slider"></span>
-      </label>
-    </div>
-  </section>
-
-  <div class="flex items-center gap-2 text-xs text-muted mt-1" id="status-row">
-    <span id="status" aria-live="polite"></span>
-    <button id="refresh-tab" class="btn sm hidden">Refresh</button>
+    </section>
   </div>
-
   <script src="popup.js"></script>
 </body>
 </html>

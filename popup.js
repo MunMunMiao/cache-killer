@@ -8,20 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function onToggleGlobal(event) {
   const enabled = event.target.checked;
-  setStatus('Saving...');
+  setStatusDot(enabled);
   try {
     const res = await send('toggleGlobal', { enabled });
     cachedState = res;
     render(res);
-    setStatus(
-      enabled
-        ? 'Enabled. Refresh the active tab to apply.'
-        : 'Disabled. Refresh the active tab to apply.'
-    );
     showRefresh();
   } catch (e) {
-    setStatus(e.message || 'Failed to save');
     event.target.checked = !enabled;
+    setStatusDot(event.target.checked);
   }
 }
 
@@ -34,20 +29,20 @@ async function refreshState() {
 function render(state) {
   const globalToggle = document.getElementById('toggle-global');
   globalToggle.checked = Boolean(state.globalEnabled);
-  hideRefresh(); // refresh prompt only after an explicit toggle action
+  setStatusDot(globalToggle.checked);
+  hideRefresh();
 }
 
-function setStatus(text) {
-  const el = document.getElementById('status');
-  if (el) el.textContent = text || '';
+function setStatusDot(on) {
+  const dot = document.getElementById('state-dot');
+  if (!dot) return;
+  dot.classList.toggle('on', on);
 }
 
 async function refreshActiveTab() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      await chrome.tabs.reload(tab.id);
-    }
+    if (tab?.id) await chrome.tabs.reload(tab.id);
   } catch (e) {
     console.error(e);
   }
