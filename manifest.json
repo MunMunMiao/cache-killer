@@ -2,11 +2,10 @@
   "manifest_version": 3,
   "name": "Cache Killer Switch",
   "version": "1.0.0",
-  "description": "Disable disk cache globally or per-domain with wildcard support.",
+  "description": "Disable cache globally via header rewrite.",
   "permissions": [
-    "browsingData",
-    "storage",
-    "webNavigation"
+    "declarativeNetRequest",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"

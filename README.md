@@ -1,21 +1,21 @@
 # Cache Killer Switch
 
-A Chrome Manifest V3 extension that clears **disk cache** on navigation using `chrome.browsingData.remove`, giving you a single global toggle equivalent to DevTools “Disable cache” without modifying request/response headers.
+A Chrome Manifest V3 extension that disables cache by rewriting request/response headers via `declarativeNetRequest`. One global toggle, no extra config.
 
 ## Features
-- Global toggle: when enabled, every HTTP/HTTPS navigation clears the destination site's disk cache.
-- Lightweight popup: one switch, no extra configuration pages.
+- Global toggle: when enabled, all HTTP/HTTPS requests carry no-cache headers; responses are also forced `no-store`.
+- Minimal popup: single switch, optional refresh button.
 
 ## How it works
-- Listens to `webNavigation.onBeforeNavigate`; if the global toggle is on, it runs `chrome.browsingData.remove({ origins: ["https://host", "http://host"] }, { cache: true })` to wipe that host's cache. The same host is cleared at most once every 3 seconds to limit overhead.
-- When turning the toggle on, it first clears all cache once.
-- Does not touch headers and stays compatible with other network-rule extensions.
+- Adds a DNR dynamic rule (id=1) when enabled, removing it when disabled.
+- Rule sets `Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0` on both request and response for all resource types.
+- Because headers are rewritten, effect is immediate—no need等待清理磁盘缓存。
 
 ## Structure
-- `manifest.json` — MV3 config and permissions (`browsingData`, `webNavigation`, `storage`, `<all_urls>`).
-- `background.js` — global state storage plus navigation hook and cache clearing logic.
-- `popup.html/css/js` — popup UI with the single global switch.
-- `assets/icon-*.png` — 16/32/48/128 icons.
+- `manifest.json` — MV3 config and permissions (`declarativeNetRequest`, `storage`, `<all_urls>`).
+- `background.js` — stores toggle state and syncs the DNR rule.
+- `popup.html/css/js` — popup UI with the global switch and refresh helper.
+- `assets/icon-*.png` — icons 16/32/48/128.
 
 ## Install for development
 1. Open Chrome `chrome://extensions/`.
@@ -23,20 +23,19 @@ A Chrome Manifest V3 extension that clears **disk cache** on navigation using `c
 3. Click “Load unpacked” and select this folder.
 
 ## Usage
-- Open the popup and toggle **Disable Disk Cache Globally** on. Turn it off to restore normal caching.
+- Open the popup, click the button to Enable/Disable cache-killing.
+- After toggling, click the small refresh button or manually reload the active tab to apply immediately to that page.
 
 ## Manual test checklist
-- [ ] With the toggle on, visit several sites; Network panel should no longer show “from disk cache” (reload once more if timing races).
-- [ ] After turning the toggle off, pages can hit disk cache again.
+- [ ] Enable, reload a page: DevTools Network should no longer show “from disk cache”; request headers include `Cache-Control: no-cache, no-store`.
+- [ ] Disable, reload: cache works normally; headers back to default.
 - [ ] State persists after browser restart.
 
 ## Chrome Web Store notes
-- Permissions: `browsingData` (clear cache), `webNavigation` (navigation events), `storage`, `<all_urls>`.
-- Privacy: all data stays local; we only store the boolean toggle.
-- Before publishing, run through the test checklist on the latest stable Chrome; include a short GIF if desired.
+- Permissions: `declarativeNetRequest` (header rewrite), `storage`, `<all_urls>`.
+- Privacy: only a boolean toggle is stored locally; no data is sent out.
+- Provide a short GIF showing toggle + reload when submitting.
 
 ## Known limitations
-- `browsingData.remove` clears cache rather than preventing new writes, so cache may be repopulated between navigations; the extension clears again on the next navigation.
-- Frequent clearing can add slight first-load latency; a 3-second cooldown is applied per host.
-
-For more aggressive behavior, reduce the cooldown or invoke clearing on additional events (at the cost of more overhead).
+- If another extension sets conflicting cache headers, the higher-priority DNR rule wins based on Chrome’s precedence (dynamic rules usually win over static, then over server headers).
+- Does not clear existing cache on disk; it prevents reuse by marking responses no-store/no-cache.
