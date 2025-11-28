@@ -31,10 +31,8 @@ function render(state, showRefreshPrompt) {
 
 function setLocalUI(enabled) {
   const btn = document.getElementById('toggle-btn');
-  const stateText = document.getElementById('state-text');
-  if (!btn || !stateText) return;
+  if (!btn) return;
   btn.textContent = enabled ? 'Disable' : 'Enable';
-  stateText.textContent = enabled ? 'Enabled (cache cleared on nav)' : 'Disabled (browser default)';
 }
 
 async function refreshActiveTab() {
