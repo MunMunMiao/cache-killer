@@ -2,9 +2,10 @@
   "manifest_version": 3,
   "name": "Cache Killer Switch",
   "version": "1.0.0",
-  "description": "Disable cache globally via header rewrite.",
+  "description": "Disable cache globally by clearing browsing data cache.",
   "permissions": [
-    "declarativeNetRequest",
+    "browsingData",
+    "webNavigation",
     "storage"
   ],
   "host_permissions": [

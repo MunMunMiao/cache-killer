@@ -1,43 +1,20 @@
 const STORAGE_KEYS = { GLOBAL_ENABLED: 'globalEnabled' };
 const DEFAULT_STATE = { [STORAGE_KEYS.GLOBAL_ENABLED]: true };
-const RULE_ID = 1001;
-
-const RESOURCE_TYPES = [
-  'main_frame',
-  'sub_frame',
-  'stylesheet',
-  'script',
-  'image',
-  'font',
-  'object',
-  'xmlhttprequest',
-  'ping',
-  'csp_report',
-  'media',
-  'websocket',
-  'other'
-];
-
-const REQUEST_HEADERS = [
-  { header: 'Cache-Control', operation: 'set', value: 'no-cache, no-store, must-revalidate' },
-  { header: 'Pragma', operation: 'set', value: 'no-cache' },
-  { header: 'Expires', operation: 'set', value: '0' }
-];
-
-const RESPONSE_HEADERS = [
-  { header: 'Cache-Control', operation: 'set', value: 'no-store, no-cache, must-revalidate, max-age=0' },
-  { header: 'Pragma', operation: 'set', value: 'no-cache' },
-  { header: 'Expires', operation: 'set', value: '0' }
-];
+const COOLDOWN_MS = 3000;
+const lastCleared = new Map();
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaults();
-  await syncRules();
+  await applyIcon();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureDefaults();
-  await syncRules();
+  await applyIcon();
+});
+
+chrome.webNavigation.onBeforeNavigate.addListener(handleNavigation, {
+  url: [{ schemes: ['http', 'https'] }]
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -50,6 +27,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return false;
 });
+
+async function handleNavigation(details) {
+  let host;
+  try {
+    host = new URL(details.url).hostname.toLowerCase();
+  } catch {
+    return;
+  }
+  const state = await loadState();
+  if (!state.globalEnabled) return;
+
+  const now = Date.now();
+  if (lastCleared.has(host) && now - lastCleared.get(host) < COOLDOWN_MS) return;
+
+  await clearCacheForHost(host);
+  lastCleared.set(host, now);
+}
+
+async function clearCacheForHost(host) {
+  const origins = [`https://${host}`, `http://${host}`];
+  try {
+    await chrome.browsingData.remove({ origins, originTypes: { unprotectedWeb: true, protectedWeb: true } }, { cache: true });
+  } catch (e) {
+    console.error('Failed to clear cache for', host, e);
+  }
+}
 
 async function ensureDefaults() {
   const stored = await chrome.storage.sync.get(Object.values(STORAGE_KEYS));
@@ -70,35 +73,26 @@ async function handleGetState() {
 async function handleToggleGlobal(message) {
   const enabled = Boolean(message.enabled);
   await chrome.storage.sync.set({ [STORAGE_KEYS.GLOBAL_ENABLED]: enabled });
-  await syncRules();
+  await applyIcon();
+  if (enabled) {
+    try {
+      await chrome.browsingData.remove({}, { cache: true });
+    } catch (e) {
+      console.error('Failed to clear all cache on enable', e);
+    }
+  }
   return loadState();
 }
 
-function buildGlobalRule() {
-  return {
-    id: RULE_ID,
-    priority: 1,
-    action: {
-      type: 'modifyHeaders',
-      requestHeaders: REQUEST_HEADERS,
-      responseHeaders: RESPONSE_HEADERS
-    },
-    condition: {
-      regexFilter: '^https?:\\/\\/.*',
-      resourceTypes: RESOURCE_TYPES
-    }
-  };
-}
-
-async function syncRules() {
+async function applyIcon() {
   const state = await loadState();
-  const addRules = state.globalEnabled ? [buildGlobalRule()] : [];
-  const current = await chrome.declarativeNetRequest.getDynamicRules();
-  const removeIds = current.map((r) => r.id); // 先清空再添加，避免 ID 冲突
-  if (removeIds.length) {
-    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules: [] });
-  }
-  if (addRules.length) {
-    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [], addRules });
-  }
+  const prefix = state.globalEnabled ? 'on' : 'off';
+  await chrome.action.setIcon({
+    path: {
+      16: `assets/icon-${prefix}-16.png`,
+      32: `assets/icon-${prefix}-32.png`,
+      48: `assets/icon-${prefix}-48.png`,
+      128: `assets/icon-${prefix}-128.png`
+    }
+  });
 }
