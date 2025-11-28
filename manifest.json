@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Cache Killer Switch",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Disable cache globally by clearing browsing data cache.",
   "permissions": [
     "browsingData",
