@@ -13,7 +13,11 @@ async function onToggleGlobal(event) {
     const res = await send('toggleGlobal', { enabled });
     cachedState = res;
     render(res);
-    setStatus(`${enabled ? 'Disabled' : 'Enabled'} disk cache. Refresh the active tab to apply.`);
+    setStatus(
+      enabled
+        ? 'Disk cache disabled. Refresh the active tab to apply.'
+        : 'Disk cache restored (browser default). Refresh the active tab to apply.'
+    );
     showRefresh();
   } catch (e) {
     setStatus(e.message || 'Failed to save');
