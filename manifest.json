@@ -5,6 +5,7 @@
   "description": "Disable cache globally by clearing browsing data cache.",
   "permissions": [
     "browsingData",
+    "declarativeNetRequest",
     "webNavigation",
     "storage"
   ],

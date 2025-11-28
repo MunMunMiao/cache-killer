@@ -2,15 +2,46 @@ const STORAGE_KEYS = { GLOBAL_ENABLED: 'globalEnabled' };
 const DEFAULT_STATE = { [STORAGE_KEYS.GLOBAL_ENABLED]: true };
 const COOLDOWN_MS = 3000;
 const lastCleared = new Map();
+const RULE_ID = 2001;
+
+const RESOURCE_TYPES = [
+  'main_frame',
+  'sub_frame',
+  'stylesheet',
+  'script',
+  'image',
+  'font',
+  'object',
+  'xmlhttprequest',
+  'ping',
+  'csp_report',
+  'media',
+  'websocket',
+  'other'
+];
+
+const REQUEST_HEADERS = [
+  { header: 'Cache-Control', operation: 'set', value: 'no-cache, no-store, must-revalidate' },
+  { header: 'Pragma', operation: 'set', value: 'no-cache' },
+  { header: 'Expires', operation: 'set', value: '0' }
+];
+
+const RESPONSE_HEADERS = [
+  { header: 'Cache-Control', operation: 'set', value: 'no-store, no-cache, must-revalidate, max-age=0' },
+  { header: 'Pragma', operation: 'set', value: 'no-cache' },
+  { header: 'Expires', operation: 'set', value: '0' }
+];
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaults();
   await applyIcon();
+  await syncRules();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureDefaults();
   await applyIcon();
+  await syncRules();
 });
 
 chrome.webNavigation.onBeforeNavigate.addListener(handleNavigation, {
@@ -75,6 +106,7 @@ async function handleToggleGlobal(message) {
   const enabled = Boolean(message.enabled);
   await chrome.storage.sync.set({ [STORAGE_KEYS.GLOBAL_ENABLED]: enabled });
   await applyIcon();
+  await syncRules();
   if (enabled) {
     try {
       await chrome.browsingData.remove({}, { cache: true });
@@ -96,4 +128,32 @@ async function applyIcon() {
       128: `assets/icon-${prefix}-128.png`
     }
   });
+}
+
+function buildGlobalRule() {
+  return {
+    id: RULE_ID,
+    priority: 1,
+    action: {
+      type: 'modifyHeaders',
+      requestHeaders: REQUEST_HEADERS,
+      responseHeaders: RESPONSE_HEADERS
+    },
+    condition: {
+      regexFilter: '^https?:\\/\\/.*',
+      resourceTypes: RESOURCE_TYPES
+    }
+  };
+}
+
+async function syncRules() {
+  const state = await loadState();
+  const current = await chrome.declarativeNetRequest.getDynamicRules();
+  const removeIds = current.map((r) => r.id);
+  if (removeIds.length) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules: [] });
+  }
+  if (state.globalEnabled) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [], addRules: [buildGlobalRule()] });
+  }
 }
