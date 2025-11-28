@@ -66,8 +66,5 @@ async function handleGetState() {
 async function handleToggleGlobal(message) {
   const enabled = Boolean(message.enabled);
   await chrome.storage.sync.set({ [STORAGE_KEYS.GLOBAL_ENABLED]: enabled });
-  if (enabled) {
-    await chrome.browsingData.remove({}, { cache: true });
-  }
   return loadState();
 }

@@ -7,11 +7,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function onToggleGlobal(event) {
   const enabled = event.target.checked;
-  setStatus('Updating...');
-  const res = await send('toggleGlobal', { enabled });
-  cachedState = res;
-  render(res);
-  setStatus(enabled ? 'Disk cache disabled globally' : 'Global toggle off');
+  setStatus('Saving...');
+  try {
+    const res = await send('toggleGlobal', { enabled });
+    cachedState = res;
+    render(res);
+    setStatus(`${enabled ? 'Disabled' : 'Enabled'} disk cache setting saved. Refresh pages to take effect.`);
+  } catch (e) {
+    setStatus(e.message || 'Failed to save');
+    event.target.checked = !enabled;
+  }
 }
 
 async function refreshState() {
