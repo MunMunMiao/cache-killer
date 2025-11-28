@@ -22,7 +22,7 @@
 body {
   margin: 0;
   padding: 14px;
-  width: 300px;
+  width: 240px;
   background: var(--bg);
   color: var(--fg);
 }
@@ -63,13 +63,17 @@ header .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
 .hidden { display: none; }
 
-.footer-link {
-  display: inline-block;
+.footer-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   margin-top: 6px;
-  font-size: 12px;
   color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
 }
-.footer-link:hover { color: var(--fg); border-color: var(--border); }
+.footer-icon:hover { color: var(--fg); border-color: var(--fg); }
