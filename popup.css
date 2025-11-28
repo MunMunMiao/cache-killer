@@ -22,7 +22,7 @@
 body {
   margin: 0;
   padding: 14px;
-  width: 320px;
+  width: min(360px, 92vw);
   background: var(--bg);
   color: var(--fg);
 }
