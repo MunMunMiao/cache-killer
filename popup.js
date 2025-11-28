@@ -3,6 +3,7 @@ let cachedState = null;
 document.addEventListener('DOMContentLoaded', async () => {
   await refreshState();
   document.getElementById('toggle-global').addEventListener('change', onToggleGlobal);
+  document.getElementById('refresh-tab').addEventListener('click', refreshActiveTab);
 });
 
 async function onToggleGlobal(event) {
@@ -12,7 +13,8 @@ async function onToggleGlobal(event) {
     const res = await send('toggleGlobal', { enabled });
     cachedState = res;
     render(res);
-    setStatus(`${enabled ? 'Disabled' : 'Enabled'} disk cache setting saved. Refresh pages to take effect.`);
+    setStatus(`${enabled ? 'Disabled' : 'Enabled'} disk cache. Refresh the active tab to apply.`);
+    showRefresh();
   } catch (e) {
     setStatus(e.message || 'Failed to save');
     event.target.checked = !enabled;
@@ -28,11 +30,33 @@ async function refreshState() {
 function render(state) {
   const globalToggle = document.getElementById('toggle-global');
   globalToggle.checked = Boolean(state.globalEnabled);
+  hideRefresh(); // refresh prompt only after an explicit toggle action
 }
 
 function setStatus(text) {
   const el = document.getElementById('status');
   if (el) el.textContent = text || '';
+}
+
+async function refreshActiveTab() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.reload(tab.id);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function showRefresh() {
+  const btn = document.getElementById('refresh-tab');
+  if (btn) btn.classList.remove('hidden');
+}
+
+function hideRefresh() {
+  const btn = document.getElementById('refresh-tab');
+  if (btn) btn.classList.add('hidden');
 }
 
 function send(type, payload = {}) {
