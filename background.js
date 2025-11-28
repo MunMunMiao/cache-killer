@@ -33,11 +33,13 @@ const RESPONSE_HEADERS = [
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaults();
   await syncRules();
+  await applyIcon();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureDefaults();
   await syncRules();
+  await applyIcon();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -71,6 +73,7 @@ async function handleToggleGlobal(message) {
   const enabled = Boolean(message.enabled);
   await chrome.storage.sync.set({ [STORAGE_KEYS.GLOBAL_ENABLED]: enabled });
   await syncRules();
+  await applyIcon();
   return loadState();
 }
 
@@ -99,4 +102,17 @@ async function syncRules() {
   const removeIds = current.map((r) => r.id).filter((id) => !expectedIds.includes(id));
 
   await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules });
+}
+
+async function applyIcon() {
+  const state = await loadState();
+  const prefix = state.globalEnabled ? 'on' : 'off';
+  await chrome.action.setIcon({
+    path: {
+      16: `assets/icon-${prefix}-16.png`,
+      32: `assets/icon-${prefix}-32.png`,
+      48: `assets/icon-${prefix}-48.png`,
+      128: `assets/icon-${prefix}-128.png`
+    }
+  });
 }

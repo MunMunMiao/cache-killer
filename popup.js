@@ -1,16 +1,5 @@
 let cachedState = null;
 
-const ICON_ON = `
-<svg viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
-
-const ICON_OFF = `
-<svg viewBox="0 0 24 24" aria-hidden="true">
-  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
-  <path d="M8 8l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-</svg>`;
-
 document.addEventListener('DOMContentLoaded', async () => {
   await refreshState();
   document.getElementById('toggle-btn').addEventListener('click', onToggle);
@@ -41,11 +30,7 @@ function render(state) {
 function setLocalUI(enabled) {
   const btn = document.getElementById('toggle-btn');
   if (!btn) return;
-  const label = enabled ? 'Disable' : 'Enable';
-  const icon = enabled ? ICON_ON : ICON_OFF;
-  btn.innerHTML = `${icon}<span class="btn-label">${label}</span>`;
-  btn.setAttribute('aria-pressed', String(enabled));
-  btn.setAttribute('aria-label', label);
+  btn.textContent = enabled ? 'Disable' : 'Enable';
 }
 
 function send(type, payload = {}) {
