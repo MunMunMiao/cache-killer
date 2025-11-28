@@ -1,6 +1,6 @@
 const STORAGE_KEYS = { GLOBAL_ENABLED: 'globalEnabled' };
 const DEFAULT_STATE = { [STORAGE_KEYS.GLOBAL_ENABLED]: true };
-const RULE_ID = 1;
+const RULE_ID = 1001;
 
 const RESOURCE_TYPES = [
   'main_frame',
@@ -93,10 +93,12 @@ function buildGlobalRule() {
 async function syncRules() {
   const state = await loadState();
   const addRules = state.globalEnabled ? [buildGlobalRule()] : [];
-  const expectedIds = state.globalEnabled ? [RULE_ID] : [];
-
   const current = await chrome.declarativeNetRequest.getDynamicRules();
-  const removeIds = current.map((r) => r.id).filter((id) => !expectedIds.includes(id));
-
-  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules });
+  const removeIds = current.map((r) => r.id); // 先清空再添加，避免 ID 冲突
+  if (removeIds.length) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: removeIds, addRules: [] });
+  }
+  if (addRules.length) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [], addRules });
+  }
 }
